@@ -3,6 +3,8 @@ import { promisify } from 'node:util';
 import { env } from '../../config/env.js';
 import { AppError } from '../../lib/app-error.js';
 import { db } from '../../lib/db.js';
+import { addEmailJob } from '../../lib/queue.js';
+import { logger } from '../../lib/logger.js';
 import type {
   SignupInput,
   LoginInput,
@@ -47,7 +49,7 @@ export async function registerCustomer(input: SignupInput) {
 
   const passwordHash = await hashPassword(input.password);
 
-  return db.$transaction(async (tx) => {
+  const user = await db.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {
         name: input.name,
@@ -67,6 +69,8 @@ export async function registerCustomer(input: SignupInput) {
 
     return user;
   });
+
+  return user;
 }
 
 export async function createLoginSession(
@@ -126,16 +130,19 @@ export async function createStaffUser(input: CreateStaffInput, adminId: number) 
 export async function requestPasswordReset(input: ForgotPasswordInput) {
   const user = await db.user.findUnique({ where: { email: input.email } });
   
-  if (!user) {
+  // Always return success to prevent email enumeration
+  if (!user || !user.isActive) {
+    logger.warn({ email: input.email }, 'Password reset requested for non-existent or inactive user');
     return { success: true };
   }
 
+  // Delete any existing unused reset tokens for this user
   await db.passwordReset.deleteMany({
     where: { userId: user.id, usedAt: null },
   });
 
   const token = randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
   await db.passwordReset.create({
     data: {
@@ -145,7 +152,25 @@ export async function requestPasswordReset(input: ForgotPasswordInput) {
     },
   });
 
-  return { success: true, token, email: user.email };
+  // Queue password reset email
+  try {
+    await addEmailJob({
+      type: 'password-reset',
+      email: user.email,
+      token,
+    });
+    logger.info({ email: user.email }, 'Password reset email queued successfully');
+  } catch (error) {
+    logger.error({ error, email: user.email }, 'Failed to queue password reset email');
+    throw new AppError('EMAIL_QUEUE_FAILED', 500, 'Failed to send password reset email. Please try again later.');
+  }
+
+  // Return token only in development for testing
+  if (env.NODE_ENV === 'development') {
+    return { success: true, token, email: user.email };
+  }
+
+  return { success: true };
 }
 
 export async function resetPassword(input: ResetPasswordInput) {
@@ -179,6 +204,15 @@ export async function resetPassword(input: ResetPasswordInput) {
       where: { userId: resetRecord.userId },
     }),
   ]);
+
+  // Queue password changed confirmation email (non-blocking)
+  addEmailJob({
+    type: 'password-changed',
+    email: resetRecord.user.email,
+    name: resetRecord.user.name,
+  }).catch((error: unknown) => {
+    logger.error({ error, email: resetRecord.user.email }, 'Failed to queue password changed email');
+  });
 
   return { success: true };
 }
