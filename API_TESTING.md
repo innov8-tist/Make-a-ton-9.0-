@@ -37,7 +37,7 @@ Server will run on port 4000 by default.
 ### 1. Customer Signup
 Create a new customer account.
 
-**Endpoint:** `POST /api/v1/auth/signup`
+**Endpoint:** `POST /api/auth/signup`
 
 **Headers:**
 ```json
@@ -96,7 +96,7 @@ Create a new customer account.
 ### 2. Login (All User Types)
 Login as ADMIN, STAFF, or CUSTOMER.
 
-**Endpoint:** `POST /api/v1/auth/login`
+**Endpoint:** `POST /api/auth/login`
 
 **Headers:**
 ```json
@@ -158,7 +158,7 @@ Login as ADMIN, STAFF, or CUSTOMER.
 ### 3. Create Staff Member (Admin Only)
 Admin creates a new staff user.
 
-**Endpoint:** `POST /api/v1/auth/staff`
+**Endpoint:** `POST /api/auth/staff`
 
 **Headers:**
 ```json
@@ -213,7 +213,7 @@ Admin creates a new staff user.
 ### 4. Forgot Password
 Request password reset token.
 
-**Endpoint:** `POST /api/v1/auth/forgot-password`
+**Endpoint:** `POST /api/auth/forgot-password`
 
 **Headers:**
 ```json
@@ -254,7 +254,7 @@ Request password reset token.
 ### 5. Reset Password
 Reset password using token from forgot password.
 
-**Endpoint:** `POST /api/v1/auth/reset-password`
+**Endpoint:** `POST /api/auth/reset-password`
 
 **Headers:**
 ```json
@@ -296,7 +296,7 @@ Reset password using token from forgot password.
 
 #### Step 1: Customer Signs Up
 ```bash
-curl -X POST http://localhost:4000/api/v1/auth/signup \
+curl -X POST http://localhost:3000/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Alice Johnson",
@@ -307,7 +307,7 @@ curl -X POST http://localhost:4000/api/v1/auth/signup \
 
 #### Step 2: Customer Logs In
 ```bash
-curl -X POST http://localhost:4000/api/v1/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -c cookies.txt \
   -d '{
@@ -318,7 +318,7 @@ curl -X POST http://localhost:4000/api/v1/auth/login \
 
 #### Step 3: Customer Accesses Protected Resource
 ```bash
-curl -X GET http://localhost:4000/api/v1/subscriptions \
+curl -X GET http://localhost:3000/api/subscriptions \
   -H "Content-Type: application/json" \
   -b cookies.txt
 ```
@@ -329,7 +329,7 @@ curl -X GET http://localhost:4000/api/v1/subscriptions \
 
 #### Step 1: Admin Logs In
 ```bash
-curl -X POST http://localhost:4000/api/v1/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -c admin-cookies.txt \
   -d '{
@@ -340,7 +340,7 @@ curl -X POST http://localhost:4000/api/v1/auth/login \
 
 #### Step 2: Admin Creates Staff Member
 ```bash
-curl -X POST http://localhost:4000/api/v1/auth/staff \
+curl -X POST http://localhost:3000/api/auth/staff \
   -H "Content-Type: application/json" \
   -b admin-cookies.txt \
   -d '{
@@ -353,7 +353,7 @@ curl -X POST http://localhost:4000/api/v1/auth/staff \
 
 #### Step 3: Staff Member Logs In
 ```bash
-curl -X POST http://localhost:4000/api/v1/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -c staff-cookies.txt \
   -d '{
@@ -368,7 +368,7 @@ curl -X POST http://localhost:4000/api/v1/auth/login \
 
 #### Step 1: Request Password Reset
 ```bash
-curl -X POST http://localhost:4000/api/v1/auth/forgot-password \
+curl -X POST http://localhost:3000/api/auth/forgot-password \
   -H "Content-Type: application/json" \
   -d '{
     "email": "alice@example.com"
@@ -379,7 +379,7 @@ curl -X POST http://localhost:4000/api/v1/auth/forgot-password \
 
 #### Step 2: Reset Password
 ```bash
-curl -X POST http://localhost:4000/api/v1/auth/reset-password \
+curl -X POST http://localhost:3000/api/auth/reset-password \
   -H "Content-Type: application/json" \
   -d '{
     "token": "YOUR_TOKEN_HERE",
@@ -389,7 +389,7 @@ curl -X POST http://localhost:4000/api/v1/auth/reset-password \
 
 #### Step 3: Login with New Password
 ```bash
-curl -X POST http://localhost:4000/api/v1/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "alice@example.com",
@@ -549,7 +549,7 @@ You can import this JSON into Postman:
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:4000/api/v1"
+      "value": "http://localhost:3000/api"
     }
   ]
 }

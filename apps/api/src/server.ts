@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { db } from './lib/db.js';
 import { logger } from './lib/logger.js';
+import { createEmailWorker, closeQueue, closeWorker } from './lib/queue.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFound } from './middleware/not-found.js';
 import { authRouter } from './modules/auth/routes.js';
@@ -28,10 +29,27 @@ const api = express.Router();
 api.get('/health', async (_req, res) => {
   try {
     await db.$queryRaw`SELECT 1`;
-    res.status(200).json({ data: { status: 'ok' } });
+    
+    // Check Redis connection
+    const { emailQueue } = await import('./lib/queue.js');
+    const redisClient = await emailQueue.client;
+    await redisClient.ping();
+    
+    res.status(200).json({ 
+      data: { 
+        status: 'ok',
+        database: 'connected',
+        redis: 'connected'
+      } 
+    });
   } catch (error) {
-    logger.warn({ err: error }, 'Database health check failed');
-    res.status(503).json({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Database unavailable' } });
+    logger.warn({ err: error }, 'Health check failed');
+    res.status(503).json({ 
+      error: { 
+        code: 'SERVICE_UNAVAILABLE', 
+        message: 'Service partially unavailable' 
+      } 
+    });
   }
 });
 
@@ -54,4 +72,38 @@ app.use(notFound);
 app.use(errorHandler);
 
 const port = Number(process.env.PORT ?? 4000);
-app.listen(port, () => logger.info({ port }, 'API server listening'));
+const server = app.listen(port, () => logger.info({ port }, 'API server listening'));
+
+// Initialize email worker
+logger.info('Starting email worker...');
+const emailWorker = createEmailWorker();
+logger.info('Email worker started successfully');
+
+// Graceful shutdown
+const gracefulShutdown = async (signal: string) => {
+  logger.info({ signal }, 'Shutdown signal received, starting graceful shutdown...');
+  
+  // Stop accepting new connections
+  server.close(() => {
+    logger.info('HTTP server closed');
+  });
+
+  try {
+    // Close email worker and queue
+    await closeWorker(emailWorker);
+    await closeQueue();
+    
+    // Close database connection
+    await db.$disconnect();
+    logger.info('Database connection closed');
+    
+    logger.info('Graceful shutdown completed');
+    process.exit(0);
+  } catch (error) {
+    logger.error({ error }, 'Error during graceful shutdown');
+    process.exit(1);
+  }
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
