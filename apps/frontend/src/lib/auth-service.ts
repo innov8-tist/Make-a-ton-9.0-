@@ -61,7 +61,14 @@ export const authService = {
    * Sign out
    */
   async signOut(): Promise<void> {
-    await axiosInstance.post('/auth/logout');
+    // Note: Backend logout endpoint should be implemented
+    // For now, just clear the session cookie by calling a placeholder endpoint
+    try {
+      await axiosInstance.post('/auth/logout');
+    } catch (error) {
+      // Logout endpoint may not exist yet, continue anyway
+      console.warn('Logout endpoint not available:', error);
+    }
   },
 
   /**

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { createHash, randomBytes, scrypt } from 'node:crypto';
+import { randomBytes, scrypt } from 'node:crypto';
 import { promisify } from 'node:util';
 
 const scryptAsync = promisify(scrypt);
@@ -11,32 +11,28 @@ async function hashPassword(password: string): Promise<string> {
   return `scrypt$${salt}$${derived.toString('hex')}`;
 }
 
+async function seedUser(email: string, name: string, password: string, role: 'ADMIN' | 'STAFF' | 'CUSTOMER') {
+  await prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: {
+      email,
+      name,
+      passwordHash: await hashPassword(password),
+      role,
+      isActive: true,
+    },
+  });
+}
+
 async function main() {
   console.log('Starting seed...');
 
-  // Create admin user if not exists
-  const adminEmail = 'admin@brightloop.com';
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
-  });
+  await seedUser('admin@brightloop.com', 'Admin User', 'Admin@123', 'ADMIN');
+  await seedUser('staff@brightloop.com', 'Staff User', 'Staff@123', 'STAFF');
+  await seedUser('customer@brightloop.com', 'Customer User', 'Customer@123', 'CUSTOMER');
 
-  if (!existingAdmin) {
-    const adminPassword = await hashPassword('Admin@123');
-    const admin = await prisma.user.create({
-      data: {
-        email: adminEmail,
-        name: 'Admin User',
-        passwordHash: adminPassword,
-        role: 'ADMIN',
-        isActive: true,
-      },
-    });
-    console.log(`✓ Created admin user: ${admin.email}`);
-  } else {
-    console.log(`✓ Admin user already exists: ${adminEmail}`);
-  }
-
-  // You can add more seed data here (taxes, sample products, etc.)
+  console.log('Created login users for ADMIN, STAFF, and CUSTOMER roles.');
   
   console.log('Seed completed!');
 }

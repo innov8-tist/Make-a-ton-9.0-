@@ -1,12 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Icons } from '@/components/ui/icons';
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import type { SignInFormData } from '@/types/auth';
 import { authService } from '@/lib/auth-service';
@@ -36,19 +36,21 @@ export default function SignInForm({ onToggle, onForgotPassword }: SignInFormPro
     try {
       const user = await authService.signIn(data);
       
-      // Role-based redirect
-      switch (user.role) {
-        case 'ADMIN':
-          navigate({ to: '/admin-dashboard' });
-          break;
-        case 'STAFF':
-          navigate({ to: '/staff-dashboard' });
-          break;
-        case 'CUSTOMER':
-          navigate({ to: '/customer-dashboard' });
-          break;
-        default:
-          navigate({ to: '/' });
+      // Store user in localStorage for persistence and dashboard auth guards
+      localStorage.setItem('brightloop-user', JSON.stringify(user));
+      
+      // Role-based redirect using backend-provided role
+      const userRole = user.role.toUpperCase();
+      
+      if (userRole === 'ADMIN') {
+        navigate({ to: '/dashboard/admin' });
+      } else if (userRole === 'STAFF') {
+        navigate({ to: '/dashboard/staff' });
+      } else if (userRole === 'CUSTOMER') {
+        navigate({ to: '/dashboard/customer' });
+      } else {
+        // Fallback to home if role is unknown
+        navigate({ to: '/' });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sign in failed. Please check your credentials.';
@@ -100,7 +102,7 @@ export default function SignInForm({ onToggle, onForgotPassword }: SignInFormPro
         <button
           type="button"
           onClick={onForgotPassword}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          className="text-sm text-primary hover:text-primary/80 font-medium"
         >
           Forgot password?
         </button>
@@ -117,12 +119,12 @@ export default function SignInForm({ onToggle, onForgotPassword }: SignInFormPro
         )}
       </Button>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-muted-foreground">
         Don't have an account?{' '}
         <button
           type="button"
           onClick={onToggle}
-          className="text-blue-600 hover:text-blue-700 font-medium"
+          className="text-primary hover:text-primary/80 font-medium"
         >
           Sign up
         </button>

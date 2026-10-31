@@ -39,19 +39,20 @@ export default function SignUpForm({ onToggle }: SignUpFormProps) {
     try {
       const user = await authService.signUp(data);
       
+      // Store user in localStorage for persistence and dashboard auth guards
+      localStorage.setItem('brightloop-user', JSON.stringify(user));
+      
       // Role-based redirect (signup creates CUSTOMER by default)
-      switch (user.role) {
-        case 'ADMIN':
-          navigate({ to: '/admin-dashboard' });
-          break;
-        case 'STAFF':
-          navigate({ to: '/staff-dashboard' });
-          break;
-        case 'CUSTOMER':
-          navigate({ to: '/customer-dashboard' });
-          break;
-        default:
-          navigate({ to: '/' });
+      const userRole = user.role.toUpperCase();
+      
+      if (userRole === 'ADMIN') {
+        navigate({ to: '/dashboard/admin' });
+      } else if (userRole === 'STAFF') {
+        navigate({ to: '/dashboard/staff' });
+      } else if (userRole === 'CUSTOMER') {
+        navigate({ to: '/dashboard/customer' });
+      } else {
+        navigate({ to: '/' });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sign up failed. Please try again.';
@@ -136,11 +137,11 @@ export default function SignUpForm({ onToggle }: SignUpFormProps) {
         />
         <Label htmlFor="agreeToTerms" className="text-sm font-normal cursor-pointer leading-tight">
           I agree to the{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+          <a href="#" className="text-primary hover:text-primary/80 font-medium">
             terms of service
           </a>{' '}
           and{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+          <a href="#" className="text-primary hover:text-primary/80 font-medium">
             privacy policy
           </a>
         </Label>
@@ -158,12 +159,12 @@ export default function SignUpForm({ onToggle }: SignUpFormProps) {
         )}
       </Button>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}
         <button
           type="button"
           onClick={onToggle}
-          className="text-blue-600 hover:text-blue-700 font-medium"
+          className="text-primary hover:text-primary/80 font-medium"
         >
           Sign in
         </button>

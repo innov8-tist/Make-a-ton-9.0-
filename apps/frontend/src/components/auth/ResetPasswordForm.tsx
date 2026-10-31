@@ -36,7 +36,7 @@ export default function ResetPasswordForm({
   if (!token) {
     return (
       <div className="space-y-5">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           This reset link is missing its token. It may be malformed, or it was already used.
         </p>
         <Button type="button" className="w-full" size="lg" onClick={onRequestNewLink}>
@@ -114,7 +114,7 @@ export default function ResetPasswordForm({
       <button
         type="button"
         onClick={onRequestNewLink}
-        className="w-full text-center text-sm text-slate-600 hover:text-slate-900"
+        className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
       >
         Use a different link
       </button>

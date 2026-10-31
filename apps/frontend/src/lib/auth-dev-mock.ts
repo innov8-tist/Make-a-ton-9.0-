@@ -1,4 +1,4 @@
-import type { PasswordResetResult } from '@/types/auth';
+import type { AuthResponse, PasswordResetResult, SignInFormData } from '@/types/auth';
 
 const STORE_KEY = 'brightloop.dev-password-resets';
 const TOKEN_TTL_MINUTES = 30;
@@ -33,6 +33,11 @@ function writeTokens(tokens: DevResetToken[]): void {
  * before the API exists. Never used in production builds.
  */
 export const authDevMock = {
+  signIn(data: SignInFormData): AuthResponse {
+    // NOTE: This mock is not used in production. The app calls the real backend API.
+    // These are only for local development testing if backend is unavailable.
+    throw new Error('Authentication mock is disabled. Please use the real backend API.');
+  },
   requestPasswordReset(email: string): PasswordResetResult {
     const now = Date.now();
     const token = crypto.randomUUID();

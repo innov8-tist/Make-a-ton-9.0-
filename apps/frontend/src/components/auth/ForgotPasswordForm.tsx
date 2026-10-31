@@ -42,9 +42,9 @@ export default function ForgotPasswordForm({
   if (sentTo) {
     return (
       <div className="space-y-5">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           If an account exists for{' '}
-          <span className="font-medium text-slate-900 dark:text-white">{sentTo}</span>, a reset
+          <span className="font-medium text-foreground">{sentTo}</span>, a reset
           link is on its way. The link expires in 30 minutes.
         </p>
 
@@ -55,7 +55,7 @@ export default function ForgotPasswordForm({
             <button
               type="button"
               onClick={() => onOpenResetLink(devToken)}
-              className="mt-2 font-medium text-blue-600 hover:text-blue-700"
+              className="mt-2 font-medium text-primary hover:text-primary/80"
             >
               Continue to reset password
             </button>
@@ -103,7 +103,7 @@ export default function ForgotPasswordForm({
       <button
         type="button"
         onClick={onBackToSignIn}
-        className="w-full text-center text-sm text-slate-600 hover:text-slate-900"
+        className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
       >
         Back to sign in
       </button>
