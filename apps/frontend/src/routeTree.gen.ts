@@ -17,6 +17,7 @@ import { Route as CustomerDashboardRouteImport } from './routes/customer-dashboa
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as StaffDashboardRouteImport } from './routes/staff-dashboard'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
+import { Route as DashboardAdminStaffRouteImport } from './routes/dashboard.admin-staff'
 import { Route as DashboardCustomerRouteImport } from './routes/dashboard.customer'
 import { Route as DashboardStaffRouteImport } from './routes/dashboard.staff'
 
@@ -60,6 +61,11 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
   path: '/dashboard/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardAdminStaffRoute = DashboardAdminStaffRouteImport.update({
+  id: '/dashboard/admin-staff',
+  path: '/dashboard/admin-staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardCustomerRoute = DashboardCustomerRouteImport.update({
   id: '/dashboard/customer',
   path: '/dashboard/customer',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/features': typeof FeaturesRoute
   '/staff-dashboard': typeof StaffDashboardRoute
   '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/admin-staff': typeof DashboardAdminStaffRoute
   '/dashboard/customer': typeof DashboardCustomerRoute
   '/dashboard/staff': typeof DashboardStaffRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/features': typeof FeaturesRoute
   '/staff-dashboard': typeof StaffDashboardRoute
   '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/admin-staff': typeof DashboardAdminStaffRoute
   '/dashboard/customer': typeof DashboardCustomerRoute
   '/dashboard/staff': typeof DashboardStaffRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/features': typeof FeaturesRoute
   '/staff-dashboard': typeof StaffDashboardRoute
   '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/admin-staff': typeof DashboardAdminStaffRoute
   '/dashboard/customer': typeof DashboardCustomerRoute
   '/dashboard/staff': typeof DashboardStaffRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/staff-dashboard'
     | '/dashboard/admin'
+    | '/dashboard/admin-staff'
     | '/dashboard/customer'
     | '/dashboard/staff'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/staff-dashboard'
     | '/dashboard/admin'
+    | '/dashboard/admin-staff'
     | '/dashboard/customer'
     | '/dashboard/staff'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/staff-dashboard'
     | '/dashboard/admin'
+    | '/dashboard/admin-staff'
     | '/dashboard/customer'
     | '/dashboard/staff'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   FeaturesRoute: typeof FeaturesRoute
   StaffDashboardRoute: typeof StaffDashboardRoute
   DashboardAdminRoute: typeof DashboardAdminRoute
+  DashboardAdminStaffRoute: typeof DashboardAdminStaffRoute
   DashboardCustomerRoute: typeof DashboardCustomerRoute
   DashboardStaffRoute: typeof DashboardStaffRoute
 }
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/admin-staff': {
+      id: '/dashboard/admin-staff'
+      path: '/dashboard/admin-staff'
+      fullPath: '/dashboard/admin-staff'
+      preLoaderRoute: typeof DashboardAdminStaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/customer': {
       id: '/dashboard/customer'
       path: '/dashboard/customer'
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturesRoute: FeaturesRoute,
   StaffDashboardRoute: StaffDashboardRoute,
   DashboardAdminRoute: DashboardAdminRoute,
+  DashboardAdminStaffRoute: DashboardAdminStaffRoute,
   DashboardCustomerRoute: DashboardCustomerRoute,
   DashboardStaffRoute: DashboardStaffRoute,
 }

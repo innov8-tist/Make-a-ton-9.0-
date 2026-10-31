@@ -6,6 +6,7 @@ import {
   login,
   signup,
   createStaff,
+  listStaff,
   forgotPassword,
   resetPasswordHandler,
 } from './controller.js';
@@ -24,3 +25,4 @@ authRouter.post('/login', validate(loginSchema), login);
 authRouter.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
 authRouter.post('/reset-password', validate(resetPasswordSchema), resetPasswordHandler);
 authRouter.post('/staff', requireAuth, requireRole('ADMIN'), validate(createStaffSchema), createStaff);
+authRouter.get('/staff', requireAuth, requireRole('ADMIN'), listStaff);

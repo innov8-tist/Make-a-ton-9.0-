@@ -6,6 +6,7 @@ import {
   createStaffUser,
   requestPasswordReset,
   resetPassword,
+  listStaffUsers,
 } from './service.js';
 import type {
   LoginInput,
@@ -60,6 +61,27 @@ export const createStaff: RequestHandler = async (req, res, next) => {
     res.status(201).json({
       data: {
         user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const listStaff: RequestHandler = async (_req, res, next) => {
+  try {
+    const staff = await listStaffUsers();
+    res.status(200).json({
+      data: {
+        staff: staff.map((user) => ({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          createdById: user.createdById,
+        })),
       },
     });
   } catch (error) {

@@ -216,3 +216,21 @@ export async function resetPassword(input: ResetPasswordInput) {
 
   return { success: true };
 }
+
+export async function listStaffUsers() {
+  const staff = await db.user.findMany({
+    where: { role: 'STAFF' },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+      createdById: true,
+    },
+  });
+
+  return staff;
+}

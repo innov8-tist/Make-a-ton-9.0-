@@ -1,11 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { dashboardPathForRole, getStoredUser } from '@/lib/auth-session'
-import { AlertTriangle, Banknote, CreditCard, RefreshCw, Users } from 'lucide-react'
+import { AlertTriangle, Banknote, CreditCard, Plus, RefreshCw, Users } from 'lucide-react'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { DataTable, StatusBadge } from '@/components/dashboard/DataTable'
 import { RevenueChart } from '@/components/dashboard/RevenueChart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { adminActivity, adminStats, adminTransactions, growthData, revenueData, subscriptionStatuses } from '@/mocks/admin-dashboard'
 
 export const Route = createFileRoute('/dashboard/admin')({
@@ -19,8 +19,11 @@ export const Route = createFileRoute('/dashboard/admin')({
   component: AdminDashboard,
 })
 
+import { dashboardPathForRole, getStoredUser } from '@/lib/auth-session'
+
 function AdminDashboard() {
   const icons = [Users, RefreshCw, Banknote, CreditCard, AlertTriangle]
+
   return (
     <DashboardLayout role="ADMIN" title="Business overview" subtitle="Here is what is happening across your subscription business.">
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -54,6 +57,23 @@ function AdminDashboard() {
                 <span className="shrink-0 text-xs text-muted-foreground">{item.time}</span>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mt-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle>Staff Management</CardTitle>
+            <Button asChild size="sm">
+              <a href="/dashboard/admin-staff">
+                <Plus className="mr-2 h-4 w-4" />
+                Manage Staff
+              </a>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">View and create staff members from the dedicated staff management page.</p>
           </CardContent>
         </Card>
       </section>

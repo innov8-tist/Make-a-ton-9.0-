@@ -6,7 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 export function StatusBadge({ status }: { status: string }) {
   const variants = {
     Paid: 'success', Active: 'success', Pending: 'warning',
-    Overdue: 'destructive', Confirmed: 'info',
+    Overdue: 'destructive', Confirmed: 'info', STAFF: 'info',
+    Inactive: 'secondary',
   } as const
   return <Badge variant={variants[status as keyof typeof variants] ?? 'secondary'}>{status}</Badge>
 }
@@ -14,7 +15,7 @@ export function StatusBadge({ status }: { status: string }) {
 export function DataTable({ title, columns, rows }: { title: string; columns: string[]; rows: ReactNode[][] }) {
   return (
     <Card>
-      <CardHeader className="pb-4"><CardTitle>{title}</CardTitle></CardHeader>
+      {title ? <CardHeader className="pb-4"><CardTitle>{title}</CardTitle></CardHeader> : null}
       <CardContent className="p-0">
         <Table>
           <TableHeader className="bg-muted/50"><TableRow>{columns.map((column) => <TableHead key={column}>{column}</TableHead>)}</TableRow></TableHeader>

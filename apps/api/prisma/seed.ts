@@ -12,10 +12,15 @@ async function hashPassword(password: string): Promise<string> {
 }
 
 async function seedUser(email: string, name: string, password: string, role: 'ADMIN' | 'STAFF' | 'CUSTOMER') {
-  await prisma.user.upsert({
-    where: { email },
-    update: {},
-    create: {
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  
+  if (existingUser) {
+    console.log(`User ${email} already exists, skipping...`);
+    return existingUser;
+  }
+
+  const user = await prisma.user.create({
+    data: {
       email,
       name,
       passwordHash: await hashPassword(password),
@@ -23,6 +28,21 @@ async function seedUser(email: string, name: string, password: string, role: 'AD
       isActive: true,
     },
   });
+
+  // If it's a customer, create the corresponding Customer record
+  if (role === 'CUSTOMER') {
+    await prisma.customer.create({
+      data: {
+        userId: user.id,
+        contactName: name,
+        email: email,
+      },
+    });
+    console.log(`Created Customer record for ${email}`);
+  }
+
+  console.log(`Created ${role} user: ${email}`);
+  return user;
 }
 
 async function main() {
@@ -32,9 +52,7 @@ async function main() {
   await seedUser('staff@brightloop.com', 'Staff User', 'Staff@123', 'STAFF');
   await seedUser('customer@brightloop.com', 'Customer User', 'Customer@123', 'CUSTOMER');
 
-  console.log('Created login users for ADMIN, STAFF, and CUSTOMER roles.');
-  
-  console.log('Seed completed!');
+  console.log('Seed completed successfully!');
 }
 
 main()
