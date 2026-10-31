@@ -17,7 +17,7 @@ const buttonVariants = cva(
       },
       size: {
         default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-md px-3 text-xs',
+        sm: 'h-8 rounded-md px-3 text-xs',
         lg: 'h-11 rounded-md px-8',
         icon: 'h-10 w-10',
       },
@@ -33,10 +33,18 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  render?: React.ReactElement;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, render, ...props }, ref) => {
+    if (render) {
+      const child = render as React.ReactElement<{ className?: string }>;
+      return React.cloneElement(child, {
+        ...props,
+        className: cn(buttonVariants({ variant, size, className }), child.props.className),
+      });
+    }
     const Comp = asChild ? Slot : 'button';
     return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
   }

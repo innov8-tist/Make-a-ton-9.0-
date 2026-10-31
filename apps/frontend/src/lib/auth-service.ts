@@ -45,21 +45,32 @@ export const authService = {
    * Sign in with email and password
    */
   async signIn(data: SignInFormData): Promise<AuthResponse> {
-    const response = await fetch(`${API_URL}/auth/signin`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        email: data.email,
-        password: data.password,
-      }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Sign in failed');
+      if (response.ok) {
+        const payload = await response.json() as {
+          data?: AuthResponse['user'];
+          user?: AuthResponse['user'];
+          token?: string;
+        };
+        const user = payload.data ?? payload.user;
+        if (!user) throw new Error('The sign-in response was invalid');
+        return { user, token: payload.token ?? '' };
+      }
+    } catch {
+      if (import.meta.env.DEV) return authDevMock.signIn(data);
     }
-
-    return response.json();
+    if (import.meta.env.DEV) return authDevMock.signIn(data);
+    throw new Error('Sign in failed');
   },
 
   /**
@@ -106,10 +117,8 @@ export const authService = {
    * Sign out
    */
   async signOut(): Promise<void> {
-    await fetch(`${API_URL}/auth/signout`, {
-      method: 'POST',
-      credentials: 'include',
-    });
+    // The API uses an HTTP-only session cookie and does not currently expose
+    // a logout endpoint. Local authentication state is cleared by the caller.
   },
 
   /**

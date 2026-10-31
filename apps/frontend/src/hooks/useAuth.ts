@@ -13,7 +13,8 @@ export function useAuth() {
     try {
       const response = await authService.signIn(data);
       setUser(response.user);
-      localStorage.setItem('token', response.token);
+      localStorage.setItem('brightloop-user', JSON.stringify(response.user));
+      if (response.token) localStorage.setItem('token', response.token);
       return response;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
@@ -31,6 +32,7 @@ export function useAuth() {
       const response = await authService.signUp(data);
       setUser(response.user);
       localStorage.setItem('token', response.token);
+      localStorage.setItem('brightloop-user', JSON.stringify(response.user));
       return response;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
@@ -44,9 +46,10 @@ export function useAuth() {
   const signOut = useCallback(async () => {
     setIsLoading(true);
     try {
-      await authService.signOut();
       setUser(null);
       localStorage.removeItem('token');
+      localStorage.removeItem('brightloop-user');
+      await authService.signOut();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);

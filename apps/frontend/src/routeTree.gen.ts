@@ -86,13 +86,29 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/auth' | '/features'
+    | '/auth'
+    | '/features'
     | '/dashboard/admin'
     | '/dashboard/customer'
     | '/dashboard/staff'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/features'
-  id: '__root__' | '/' | '/about' | '/features'
+  to:
+    | '/'
+    | '/about'
+    | '/auth'
+    | '/features'
+    | '/dashboard/admin'
+    | '/dashboard/customer'
+    | '/dashboard/staff'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/auth'
+    | '/features'
+    | '/dashboard/admin'
+    | '/dashboard/customer'
+    | '/dashboard/staff'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {

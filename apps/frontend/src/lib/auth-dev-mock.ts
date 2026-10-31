@@ -1,4 +1,4 @@
-import type { PasswordResetResult } from '@/types/auth';
+import type { AuthResponse, PasswordResetResult, SignInFormData } from '@/types/auth';
 
 const STORE_KEY = 'brightloop.dev-password-resets';
 const TOKEN_TTL_MINUTES = 30;
@@ -33,6 +33,22 @@ function writeTokens(tokens: DevResetToken[]): void {
  * before the API exists. Never used in production builds.
  */
 export const authDevMock = {
+  signIn(data: SignInFormData): AuthResponse {
+    const accounts = [
+      { email: 'admin@brightloop.com', password: 'Admin@123', role: 'ADMIN', name: 'Admin User' },
+      { email: 'staff@brightloop.com', password: 'Staff@123', role: 'STAFF', name: 'Staff User' },
+      { email: 'customer@brightloop.com', password: 'Customer@123', role: 'CUSTOMER', name: 'Customer User' },
+    ] as const;
+    const account = accounts.find(
+      (entry) => entry.email === data.email.trim().toLowerCase() && entry.password === data.password,
+    );
+    if (!account) throw new Error('Invalid demo email or password');
+
+    return {
+      user: { id: accounts.indexOf(account) + 1, email: account.email, name: account.name, role: account.role },
+      token: `demo-${account.role.toLowerCase()}-token`,
+    };
+  },
   requestPasswordReset(email: string): PasswordResetResult {
     const now = Date.now();
     const token = crypto.randomUUID();

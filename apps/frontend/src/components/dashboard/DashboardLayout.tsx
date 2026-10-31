@@ -7,7 +7,7 @@ import {
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
+import { useAuth } from '@/hooks/useAuth'
 
 export type DashboardRole = 'ADMIN' | 'STAFF' | 'CUSTOMER'
 
@@ -22,9 +22,10 @@ export function DashboardLayout({
 }: { role: DashboardRole; title: string; subtitle: string; children: ReactNode }) {
   const navigate = useNavigate()
   const route = role.toLowerCase()
-  const changeRole = (nextRole: DashboardRole) => {
-    localStorage.setItem('brightloop-preview-role', nextRole)
-    navigate({ to: `/dashboard/${nextRole.toLowerCase()}` })
+  const { signOut } = useAuth()
+  const handleSignOut = async () => {
+    await signOut()
+    await navigate({ to: '/auth' })
   }
 
   const links = role === 'CUSTOMER'
@@ -47,8 +48,7 @@ export function DashboardLayout({
           ))}
         </nav>
         <div className="border-t p-4">
-          <div className="mb-3 rounded-md border bg-muted/50 p-3 text-xs"><p className="font-semibold text-primary">Preview mode</p><p className="mt-1 text-muted-foreground">Role data is mocked locally.</p></div>
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground"><LogOut className="h-4 w-4" />Sign out</Button>
+          <Button variant="ghost" className="w-full justify-start text-muted-foreground" onClick={handleSignOut}><LogOut className="h-4 w-4" />Sign out</Button>
         </div>
       </aside>
 
@@ -58,15 +58,6 @@ export function DashboardLayout({
             <div className="relative w-full"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label="Search" placeholder="Search anything..." className="pl-9" /></div>
           </div>
           <div className="flex items-center gap-2 md:ml-auto">
-            <Select
-              aria-label="Preview role"
-              value={role}
-              onChange={(event) => changeRole(event.target.value as DashboardRole)}
-            >
-              <option value="ADMIN">Admin preview</option>
-              <option value="STAFF">Staff preview</option>
-              <option value="CUSTOMER">Customer preview</option>
-            </Select>
             <ThemeToggle />
             <Button variant="outline" size="icon" aria-label="Notifications" className="relative"><Bell className="h-4 w-4" /><span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" /></Button>
             <div className="ml-1 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-sm">BL</div>

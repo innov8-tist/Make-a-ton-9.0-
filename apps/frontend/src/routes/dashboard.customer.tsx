@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { dashboardPathForRole, getStoredUser } from '@/lib/auth-session'
 import { CalendarClock, CreditCard, RefreshCw, ReceiptText } from 'lucide-react'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { StatCard } from '@/components/dashboard/StatCard'
@@ -8,6 +9,13 @@ import { Button } from '@/components/ui/button'
 import { customerInvoices, customerPayments, customerStats, customerSubscriptions } from '@/mocks/customer-dashboard'
 
 export const Route = createFileRoute('/dashboard/customer')({
+  beforeLoad: () => {
+    const user = getStoredUser()
+    if (!user) throw redirect({ to: '/auth' })
+    if (dashboardPathForRole(user.role) !== '/dashboard/customer') {
+      throw redirect({ to: dashboardPathForRole(user.role) as '/dashboard/admin' | '/dashboard/staff' | '/dashboard/customer' })
+    }
+  },
   component: CustomerDashboard,
 })
 
