@@ -1,0 +1,22 @@
+{
+  "name": "brightloop",
+  "private": true,
+  "workspaces": ["apps/api", "packages/shared"],
+  "engines": { "node": ">=20 <21", "npm": ">=10" },
+  "scripts": {
+    "dev": "npm run dev -w @brightloop/api",
+    "build": "npm run build -w @brightloop/shared && npm run build -w @brightloop/api",
+    "db:migrate": "npm run db:migrate -w @brightloop/api",
+    "db:seed": "npm run db:seed -w @brightloop/api",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript-eslint": "^8.19.0"
+  }
+}
