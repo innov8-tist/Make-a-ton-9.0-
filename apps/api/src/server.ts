@@ -1,6 +1,8 @@
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { env } from './config/env.js';
 import { db } from './lib/db.js';
 import { logger } from './lib/logger.js';
 import { createEmailWorker, closeQueue, closeWorker } from './lib/queue.js';
@@ -21,6 +23,15 @@ import { templatesRouter } from './modules/templates/routes.js';
 import { usersRouter } from './modules/users/routes.js';
 
 export const app = express();
+
+// CORS configuration - must be before other middleware
+app.use(cors({
+  origin: env.FRONTEND_URL,
+  credentials: true, // Allow cookies to be sent
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());

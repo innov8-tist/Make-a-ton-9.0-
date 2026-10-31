@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import type { SignInFormData, SignUpFormData, AuthResponse } from '@/types/auth';
+import type { SignInFormData, SignUpFormData, User } from '@/types/auth';
 import { authService } from '@/lib/auth-service';
 
 export function useAuth() {
-  const [user, setUser] = useState<AuthResponse['user'] | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -11,10 +11,9 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await authService.signIn(data);
-      setUser(response.user);
-      localStorage.setItem('token', response.token);
-      return response;
+      const user = await authService.signIn(data);
+      setUser(user);
+      return user;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
@@ -28,10 +27,9 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await authService.signUp(data);
-      setUser(response.user);
-      localStorage.setItem('token', response.token);
-      return response;
+      const user = await authService.signUp(data);
+      setUser(user);
+      return user;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
@@ -46,7 +44,6 @@ export function useAuth() {
     try {
       await authService.signOut();
       setUser(null);
-      localStorage.removeItem('token');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);

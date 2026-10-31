@@ -29,12 +29,27 @@ export interface PasswordResetResult {
 
 export type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: 'ADMIN' | 'STAFF' | 'CUSTOMER';
+}
+
 export interface AuthResponse {
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    role: string;
+  data: {
+    user: User;
   };
-  token: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  data?: {
+    token?: string;
+    email?: string;
+  };
+}
+
+export interface ResetPasswordResponse {
+  message: string;
 }
