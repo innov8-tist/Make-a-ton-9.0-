@@ -1,14 +1,10 @@
-import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import express from 'express';
-import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import { env } from './config/env.js';
 import { db } from './lib/db.js';
 import { logger } from './lib/logger.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFound } from './middleware/not-found.js';
-import { originCheck } from './middleware/origin-check.js';
 import { authRouter } from './modules/auth/routes.js';
 import { billingRouter } from './modules/billing/routes.js';
 import { customersRouter } from './modules/customers/routes.js';
@@ -25,11 +21,8 @@ import { usersRouter } from './modules/users/routes.js';
 
 export const app = express();
 app.use(helmet());
-app.use(cors({ origin: env.WEB_URL, credentials: true }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 100 }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(originCheck);
 
 const api = express.Router();
 api.get('/health', async (_req, res) => {

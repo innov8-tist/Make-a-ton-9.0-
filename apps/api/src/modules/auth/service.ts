@@ -1,32 +1,17 @@
 import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
-import { z } from 'zod';
 import { env } from '../../config/env.js';
 import { AppError } from '../../lib/app-error.js';
 import { db } from '../../lib/db.js';
+import type {
+  SignupInput,
+  LoginInput,
+  CreateStaffInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from './schema.js';
 
 const scryptAsync = promisify(scrypt);
-
-const passwordSchema = z
-  .string()
-  .min(9, 'Password must be more than 8 characters')
-  .regex(/[A-Z]/, 'Password must contain an uppercase letter')
-  .regex(/[a-z]/, 'Password must contain a lowercase letter')
-  .regex(/[^\w\s]/, 'Password must contain a special character');
-
-export const signupSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100),
-  email: z.string().trim().email('Email must be valid').transform((email) => email.toLower()),
-  password: passwordSchema,
-});
-
-export const loginSchema = z.object({
-  email: z.string().trim().email('Email must be valid').transform((email) => email.toLower()),
-  password: z.string().min(1, 'Password is required'),
-});
-
-export type SignupInput = z.infer<typeof signupSchema>;
-export type LoginInput = z.infer<typeof loginSchema>;
 
 async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString('hex');
@@ -38,8 +23,13 @@ async function verifyPassword(password: string, storedHash: string): Promise<boo
   const parts = storedHash.split('$');
   if (parts.length !== 3 || parts[0] !== 'scrypt') return false;
 
-  const derived = await scryptAsync(password, parts[1], 64) as Buffer;
-  const stored = Buffer.from(parts[2], 'hex');
+  const salt = parts[1];
+  const storedKey = parts[2];
+  
+  if (!salt || !storedKey) return false;
+
+  const derived = await scryptAsync(password, salt, 64) as Buffer;
+  const stored = Buffer.from(storedKey, 'hex');
   return stored.length === derived.length && timingSafeEqual(stored, derived);
 }
 
@@ -84,6 +74,7 @@ export async function createLoginSession(
   metadata: { ip?: string | undefined; userAgent?: string | undefined },
 ) {
   const user = await db.user.findUnique({ where: { email: input.email } });
+  
   if (!user || !user.isActive || !(await verifyPassword(input.password, user.passwordHash))) {
     throw new AppError('INVALID_CREDENTIALS', 401, 'Invalid email or password');
   }
@@ -106,4 +97,88 @@ export async function createLoginSession(
   });
 
   return { session, token, user };
+}
+
+export async function createStaffUser(input: CreateStaffInput, adminId: number) {
+  const existing = await db.user.findUnique({ where: { email: input.email } });
+  if (existing) {
+    throw new AppError('EMAIL_ALREADY_EXISTS', 409, 'An account with this email already exists', {
+      email: ['Email is already registered'],
+    });
+  }
+
+  const passwordHash = await hashPassword(input.password);
+
+  const user = await db.user.create({
+    data: {
+      name: input.name,
+      email: input.email,
+      passwordHash,
+      role: 'STAFF',
+      createdById: adminId,
+      mustChangePassword: true,
+    },
+  });
+
+  return user;
+}
+
+export async function requestPasswordReset(input: ForgotPasswordInput) {
+  const user = await db.user.findUnique({ where: { email: input.email } });
+  
+  if (!user) {
+    return { success: true };
+  }
+
+  await db.passwordReset.deleteMany({
+    where: { userId: user.id, usedAt: null },
+  });
+
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+  await db.passwordReset.create({
+    data: {
+      userId: user.id,
+      tokenHash: hashToken(token),
+      expiresAt,
+    },
+  });
+
+  return { success: true, token, email: user.email };
+}
+
+export async function resetPassword(input: ResetPasswordInput) {
+  const tokenHash = hashToken(input.token);
+  
+  const resetRecord = await db.passwordReset.findUnique({
+    where: { tokenHash },
+    include: { user: true },
+  });
+
+  if (!resetRecord || resetRecord.usedAt || resetRecord.expiresAt < new Date()) {
+    throw new AppError('INVALID_TOKEN', 400, 'Invalid or expired reset token');
+  }
+
+  const passwordHash = await hashPassword(input.password);
+
+  await db.$transaction([
+    db.user.update({
+      where: { id: resetRecord.userId },
+      data: {
+        passwordHash,
+        passwordChangedAt: new Date(),
+        mustChangePassword: false,
+      },
+    }),
+    db.passwordReset.update({
+      where: { id: resetRecord.id },
+      data: { usedAt: new Date() },
+    }),
+    db.session.deleteMany({
+      where: { userId: resetRecord.userId },
+    }),
+  ]);
+
+  return { success: true };
 }
